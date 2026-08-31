@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import FormConfig from '../components/FormConfig.jsx';
 import ListaReservas from '../components/ListaReservas.jsx';
+import ModalConfirmacao from '../components/ModalConfirmacao.jsx';
 import Sorteio from '../components/Sorteio.jsx';
 import {
   atualizarConfig,
@@ -90,6 +91,7 @@ function Painel({ senha, onSair }) {
   const [reservas, setReservas] = useState([]);
   const [resumo, setResumo] = useState(null);
   const [ganhador, setGanhador] = useState(null);
+  const [liberacaoPendente, setLiberacaoPendente] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState(null);
@@ -201,13 +203,7 @@ function Painel({ senha, onSair }) {
           valorNumero={config?.valor_numero ?? 0}
           ocupado={ocupado}
           onConfirmar={(r) => executar(() => confirmarReserva(senha, r.id))}
-          onLiberar={(r) => {
-            const aviso =
-              r.status === 'paga'
-                ? `A reserva #${r.id} está PAGA. Liberar devolve os números ${r.numeros.join(', ')} para livre. Continuar?`
-                : `Liberar os números ${r.numeros.join(', ')} da reserva #${r.id}?`;
-            if (window.confirm(aviso)) executar(() => liberarReserva(senha, r.id));
-          }}
+          onLiberar={setLiberacaoPendente}
         />
 
         <Sorteio
@@ -218,6 +214,45 @@ function Painel({ senha, onSair }) {
           onSortear={aoSortear}
         />
       </main>
+
+      {liberacaoPendente && (
+        <ModalConfirmacao
+          titulo={`Liberar números da reserva #${liberacaoPendente.id}?`}
+          rotuloConfirmar="Liberar números"
+          destrutivo
+          onCancelar={() => setLiberacaoPendente(null)}
+          onConfirmar={() => {
+            const alvo = liberacaoPendente;
+            setLiberacaoPendente(null);
+            executar(() => liberarReserva(senha, alvo.id));
+          }}
+        >
+          <p>
+            {liberacaoPendente.status === 'paga' ? (
+              <>
+                Esta reserva está <strong>paga</strong>. Liberar cancela a reserva de{' '}
+                <strong>{liberacaoPendente.nome}</strong> e devolve os números para livre — o valor
+                deixa de contar no total arrecadado.
+              </>
+            ) : (
+              <>
+                A reserva de <strong>{liberacaoPendente.nome}</strong> será cancelada e os números
+                voltam a ficar livres para outras pessoas.
+              </>
+            )}
+          </p>
+          <p className="mt-3 flex flex-wrap gap-1.5">
+            {liberacaoPendente.numeros.map((n) => (
+              <span
+                key={n}
+                className="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-bold tabular-nums text-slate-700"
+              >
+                {n}
+              </span>
+            ))}
+          </p>
+        </ModalConfirmacao>
+      )}
     </div>
   );
 }
