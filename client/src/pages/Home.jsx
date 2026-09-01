@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Ticket } from '@phosphor-icons/react';
 
 import Grade from '../components/Grade.jsx';
 import Legenda from '../components/Legenda.jsx';
+import ProgressoRifa from '../components/ProgressoRifa.jsx';
+import CardConfianca from '../components/CardConfianca.jsx';
 import ModalReserva from '../components/ModalReserva.jsx';
 import ReservaConfirmada from '../components/ReservaConfirmada.jsx';
-import { getConfig, getNumeros, formatarMoeda, formatarData } from '../api';
+import { getConfig, getNumeros, formatarMoeda } from '../api';
 
 const INTERVALO_ATUALIZACAO = 5000;
+const ATALHOS = [5, 10, 20];
 
 export default function Home() {
   const [config, setConfig] = useState(null);
@@ -23,7 +27,7 @@ export default function Home() {
     const dados = await getNumeros();
     setNumeros(dados.numeros);
     setContadores(dados.contadores);
-    // Remove da seleção qualquer número que outra pessoa tenha pego enquanto isso.
+    // Tira da seleção qualquer número que outra pessoa tenha pego enquanto isso.
     const livres = new Set(dados.numeros.filter((n) => n.status === 'livre').map((n) => n.numero));
     setSelecionados((atuais) => atuais.filter((n) => livres.has(n)));
   }, []);
@@ -56,8 +60,21 @@ export default function Home() {
 
   function alternar(numero) {
     setSelecionados((atuais) =>
-      atuais.includes(numero) ? atuais.filter((n) => n !== numero) : [...atuais, numero].sort((a, b) => a - b)
+      atuais.includes(numero)
+        ? atuais.filter((n) => n !== numero)
+        : [...atuais, numero].sort((a, b) => a - b)
     );
+  }
+
+  /** Escolha rápida: distribui a quantidade pedida entre os números livres. */
+  function escolhaRapida(quantidade) {
+    const livres = numeros.filter((n) => n.status === 'livre').map((n) => n.numero);
+    const passo = Math.max(1, Math.floor(livres.length / quantidade));
+    const escolhidos = [];
+    for (let i = 0; i < livres.length && escolhidos.length < quantidade; i += passo) {
+      escolhidos.push(livres[i]);
+    }
+    setSelecionados(escolhidos.sort((a, b) => a - b));
   }
 
   async function aoReservar(reserva) {
@@ -68,10 +85,11 @@ export default function Home() {
   }
 
   const total = selecionados.length * (config?.valor_numero ?? 0);
+  const livresDisponiveis = contadores.livre;
 
   if (carregando) {
     return (
-      <main className="flex min-h-screen items-center justify-center p-6 text-slate-500">
+      <main className="flex min-h-screen items-center justify-center p-6 text-neutral-400">
         Carregando a rifa…
       </main>
     );
@@ -80,77 +98,99 @@ export default function Home() {
   if (erro) {
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
-        <div className="rounded-xl bg-white p-6 text-center shadow">
-          <p className="font-semibold text-red-700">Não foi possível carregar a rifa.</p>
-          <p className="mt-1 text-sm text-slate-500">{erro}</p>
+        <div className="card elev-md max-w-sm text-center">
+          <p className="font-heading text-ink">Não foi possível carregar a rifa.</p>
+          <p className="text-[13px] text-neutral-400">{erro}</p>
         </div>
       </main>
     );
   }
 
   return (
-    <div className="min-h-screen pb-28">
-      <header className="bg-slate-900 px-4 py-6 text-white sm:py-10">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-2xl font-bold sm:text-3xl">{config.titulo}</h1>
-          {config.descricao && (
-            <p className="mt-2 text-sm text-slate-300 sm:text-base">{config.descricao}</p>
-          )}
-          <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <div>
-              <dt className="text-slate-400">Valor por número</dt>
-              <dd className="font-semibold">{formatarMoeda(config.valor_numero)}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-400">Sorteio</dt>
-              <dd className="font-semibold">{formatarData(config.data_sorteio)}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-400">Total de números</dt>
-              <dd className="font-semibold tabular-nums">{config.total_numeros}</dd>
-            </div>
-          </dl>
-        </div>
-      </header>
+    <div className="flex min-h-screen justify-center px-4 py-8">
+      <div className="flex w-full max-w-[440px] flex-col gap-4">
+        <header className="nav rounded-md">
+          <span className="nav-brand flex items-center gap-2">
+            <Ticket size={20} className="text-accent" aria-hidden="true" />
+            Rifa
+          </span>
+          <span className="text-[12px] tabular-nums text-neutral-400">
+            {contadores.livre} livres
+          </span>
+        </header>
 
-      <main className="mx-auto max-w-3xl space-y-4 p-4">
-        <Legenda contadores={contadores} />
+        <ProgressoRifa config={config} contadores={contadores} />
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-          <h2 className="mb-3 text-sm font-semibold text-slate-700">
-            Toque nos números verdes para escolher
-          </h2>
+        <section className="card gap-3">
+          <span className="card-title text-[15px]">Escolha rápida</span>
+          <div className="grid grid-cols-3 gap-2">
+            {ATALHOS.map((qtd) => (
+              <button
+                key={qtd}
+                type="button"
+                className="btn btn-secondary"
+                disabled={livresDisponiveis === 0}
+                onClick={() => escolhaRapida(qtd)}
+              >
+                {qtd} números
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-2 flex items-baseline justify-between gap-3">
+            <span className="card-title text-[15px]">Ou toque na grade</span>
+            <button
+              type="button"
+              className="btn btn-ghost text-[12px]"
+              disabled={selecionados.length === 0}
+              onClick={() => setSelecionados([])}
+            >
+              Limpar seleção
+            </button>
+          </div>
+
+          <Legenda contadores={contadores} />
+
           <Grade numeros={numeros} selecionados={selecionados} onToggle={alternar} />
         </section>
 
-        <p className="text-center text-xs text-slate-400">
+        <CardConfianca />
+
+        <p className="text-center text-[11px] text-neutral-500">
           A grade atualiza sozinha a cada {INTERVALO_ATUALIZACAO / 1000} segundos.{' '}
-          <Link to="/admin" className="underline hover:text-slate-600">
+          <Link to="/admin" className="text-accent-300 underline">
             Área do organizador
           </Link>
         </p>
-      </main>
 
-      {selecionados.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="mx-auto flex max-w-3xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-slate-600">
-                {selecionados.length} {selecionados.length === 1 ? 'número' : 'números'}:{' '}
-                <span className="font-semibold text-slate-900">{selecionados.join(', ')}</span>
-              </p>
-              <p className="text-lg font-bold text-slate-900">{formatarMoeda(total)}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalAberto(true)}
-              className="shrink-0 rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Reservar
-            </button>
+        {/* Some enquanto um modal está aberto: o resumo já está dentro dele, e o
+            fundo opaco da barra atravessaria o backdrop translúcido do sistema. */}
+        <div
+          className="card elev-lg sticky bottom-4 flex-row items-center gap-4 bg-neutral-800"
+          hidden={modalAberto || Boolean(reservaFeita)}
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
+            <span className="truncate text-[11px] text-neutral-400">
+              {selecionados.length === 0
+                ? 'Nenhum número selecionado'
+                : `${selecionados.length} ${selecionados.length === 1 ? 'número' : 'números'}: ${selecionados
+                    .map((n) => String(n).padStart(2, '0'))
+                    .join(', ')}`}
+            </span>
+            <span className="text-[20px] font-medium tabular-nums text-ink">
+              {formatarMoeda(total)}
+            </span>
           </div>
+          <button
+            type="button"
+            className="btn btn-primary shrink-0"
+            disabled={selecionados.length === 0}
+            onClick={() => setModalAberto(true)}
+          >
+            Continuar
+          </button>
         </div>
-      )}
+      </div>
 
       {modalAberto && (
         <ModalReserva

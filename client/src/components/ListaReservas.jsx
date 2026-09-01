@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { formatarDataHora, formatarMoeda } from '../api';
 
 const BADGE = {
-  pendente: 'bg-amber-100 text-amber-900',
-  paga: 'bg-emerald-100 text-emerald-900',
-  cancelada: 'bg-slate-200 text-slate-600',
+  pendente: 'tag tag-neutral',
+  paga: 'tag tag-accent',
+  cancelada: 'tag tag-outline',
+};
+
+const NOME_STATUS = {
+  pendente: 'aguardando pagamento',
+  paga: 'paga',
+  cancelada: 'cancelada',
 };
 
 const FILTROS = [
@@ -20,22 +26,26 @@ export default function ListaReservas({ reservas, valorNumero, onConfirmar, onLi
   const visiveis = filtro === 'todas' ? reservas : reservas.filter((r) => r.status === filtro);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="card">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-bold text-slate-900">Reservas</h2>
+        <span className="card-title text-[15px]">Reservas</span>
         <div className="flex flex-wrap gap-1">
           {FILTROS.map((f) => {
-            const qtd = f.chave === 'todas' ? reservas.length : reservas.filter((r) => r.status === f.chave).length;
+            const qtd =
+              f.chave === 'todas'
+                ? reservas.length
+                : reservas.filter((r) => r.status === f.chave).length;
+            const ativo = filtro === f.chave;
             return (
               <button
                 key={f.chave}
                 type="button"
                 onClick={() => setFiltro(f.chave)}
                 className={[
-                  'rounded-full px-3 py-1 text-xs font-semibold transition',
-                  filtro === f.chave
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                  'rounded-sm px-2 py-1 text-[11px] font-medium tabular-nums transition-colors',
+                  ativo
+                    ? 'text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]'
+                    : 'text-neutral-400 shadow-[inset_0_0_0_1px_var(--color-divider)] hover:text-ink',
                 ].join(' ')}
               >
                 {f.rotulo} ({qtd})
@@ -46,43 +56,41 @@ export default function ListaReservas({ reservas, valorNumero, onConfirmar, onLi
       </div>
 
       {visiveis.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-500">Nenhuma reserva nesta categoria.</p>
+        <p className="py-8 text-center text-[13px] text-neutral-500">
+          Nenhuma reserva nesta categoria.
+        </p>
       ) : (
-        <ul className="mt-3 divide-y divide-slate-100">
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {visiveis.map((r) => (
-            <li key={r.id} className="py-3">
+            <li key={r.id} className="flex flex-col gap-2 rounded-md bg-neutral-900 p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-900">
+                  <p className="m-0 font-heading text-[15px] font-medium text-ink">
                     #{r.id} — {r.nome}
                   </p>
-                  <p className="text-sm text-slate-600">{r.contato}</p>
+                  <p className="m-0 text-[13px] text-neutral-400">{r.contato}</p>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE[r.status]}`}
-                >
-                  {r.status}
-                </span>
+                <span className={BADGE[r.status]}>{NOME_STATUS[r.status]}</span>
               </div>
 
-              <p className="mt-2 flex flex-wrap gap-1">
+              <p className="m-0 flex flex-wrap gap-1">
                 {r.numeros.length === 0 ? (
-                  <span className="text-sm text-slate-400">sem números</span>
+                  <span className="text-[13px] text-neutral-500">sem números</span>
                 ) : (
                   r.numeros.map((n) => (
                     <span
                       key={n}
-                      className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-bold tabular-nums text-slate-700"
+                      className="rounded-sm bg-neutral-800 px-[6px] py-[2px] text-[12px] font-medium tabular-nums text-neutral-300"
                     >
-                      {n}
+                      {String(n).padStart(2, '0')}
                     </span>
                   ))
                 )}
               </p>
 
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="m-0 text-[11px] tabular-nums text-neutral-500">
                 {r.numeros.length} × {formatarMoeda(valorNumero)} ={' '}
-                <strong className="text-slate-700">
+                <strong className="font-medium text-neutral-300">
                   {formatarMoeda(r.numeros.length * valorNumero)}
                 </strong>{' '}
                 · criada em {formatarDataHora(r.criada_em)}
@@ -90,22 +98,22 @@ export default function ListaReservas({ reservas, valorNumero, onConfirmar, onLi
               </p>
 
               {r.status !== 'cancelada' && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {r.status === 'pendente' && (
                     <button
                       type="button"
+                      className="btn btn-primary"
                       disabled={ocupado}
                       onClick={() => onConfirmar(r)}
-                      className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
                     >
                       Validar pagamento
                     </button>
                   )}
                   <button
                     type="button"
+                    className="btn btn-secondary"
                     disabled={ocupado}
                     onClick={() => onLiberar(r)}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                   >
                     Liberar números
                   </button>

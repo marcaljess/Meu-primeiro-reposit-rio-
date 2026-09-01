@@ -1,13 +1,16 @@
+// Estados do número na grade. Nocturne não usa cor semântica saturada: livre é
+// só contorno, aguardando pagamento é um cinza cheio e pago é o acento tingido.
 const ESTILOS = {
-  livre: 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 cursor-pointer',
-  reservado: 'bg-amber-400 text-amber-950 cursor-not-allowed',
-  confirmado: 'bg-red-500 text-white cursor-not-allowed',
+  livre:
+    'bg-transparent text-ink shadow-[inset_0_0_0_1px_var(--color-divider)] hover:bg-accent-900 hover:shadow-[inset_0_0_0_1px_var(--color-accent-700)] cursor-pointer',
+  reservado: 'bg-neutral-800 text-neutral-500 cursor-not-allowed',
+  confirmado: 'bg-accent-800 text-accent-300 cursor-not-allowed',
 };
 
 const ROTULOS = {
   livre: 'livre',
-  reservado: 'reservado (aguardando pagamento)',
-  confirmado: 'confirmado (pago)',
+  reservado: 'aguardando pagamento',
+  confirmado: 'pago',
 };
 
 export default function Grade({ numeros, selecionados, onToggle }) {
@@ -15,7 +18,7 @@ export default function Grade({ numeros, selecionados, onToggle }) {
 
   return (
     <div
-      className="grid grid-cols-5 gap-1.5 sm:grid-cols-8 sm:gap-2 md:grid-cols-10"
+      className="grid grid-cols-6 gap-2"
       role="group"
       aria-label="Grade de números da rifa"
     >
@@ -31,14 +34,14 @@ export default function Grade({ numeros, selecionados, onToggle }) {
             aria-label={`Número ${numero}: ${escolhido ? 'selecionado' : ROTULOS[status]}`}
             onClick={() => livre && onToggle(numero)}
             className={[
-              'flex aspect-square items-center justify-center rounded-lg text-sm font-bold tabular-nums',
-              'transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2',
+              'flex aspect-square items-center justify-center rounded-sm border-0 p-0',
+              'font-body text-[13px] font-medium tabular-nums transition-[background-color,color,box-shadow] duration-150',
               escolhido
-                ? 'bg-slate-900 text-white ring-2 ring-slate-900 ring-offset-2'
+                ? 'bg-accent-700 text-accent-100 shadow-[inset_0_0_0_1px_var(--color-accent)]'
                 : ESTILOS[status],
             ].join(' ')}
           >
-            {numero}
+            {String(numero).padStart(2, '0')}
           </button>
         );
       })}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Ticket } from '@phosphor-icons/react';
 
 import FormConfig from '../components/FormConfig.jsx';
 import ListaReservas from '../components/ListaReservas.jsx';
@@ -46,39 +47,41 @@ function TelaLogin({ onEntrar }) {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
-      <form onSubmit={enviar} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
-        <h1 className="text-xl font-bold text-slate-900">Painel do organizador</h1>
-        <p className="mt-1 text-sm text-slate-500">Informe a senha para continuar.</p>
+      <form onSubmit={enviar} className="card elev-md w-full max-w-sm gap-3 p-4">
+        <span className="card-kicker">Área restrita</span>
+        <h1 className="m-0 font-heading text-[22px] font-medium text-ink">
+          Painel do organizador
+        </h1>
+        <p className="card-body m-0">Informe a senha para continuar.</p>
 
-        <label htmlFor="senha" className="mt-5 block text-sm font-medium text-slate-700">
-          Senha
-        </label>
-        <input
-          id="senha"
-          type="password"
-          required
-          autoFocus
-          autoComplete="current-password"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
-        />
+        <div className="field mt-2">
+          <label htmlFor="senha">Senha</label>
+          <input
+            id="senha"
+            className="input"
+            type="password"
+            required
+            autoFocus
+            autoComplete="current-password"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+        </div>
 
         {erro && (
-          <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">
+          <p
+            className="m-0 rounded-md bg-neutral-900 p-3 text-[13px] text-accent-200 shadow-[inset_0_0_0_1px_var(--color-accent-700)]"
+            role="alert"
+          >
             {erro}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="mt-4 w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
-        >
+        <button type="submit" className="btn btn-primary btn-block" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
 
-        <Link to="/" className="mt-4 block text-center text-sm text-slate-500 underline">
+        <Link to="/" className="mt-2 block text-center text-[12px] text-accent-300">
           Voltar para a rifa
         </Link>
       </form>
@@ -146,43 +149,34 @@ function Painel({ senha, onSair }) {
 
   if (carregando) {
     return (
-      <main className="flex min-h-screen items-center justify-center p-6 text-slate-500">
+      <main className="flex min-h-screen items-center justify-center p-6 text-neutral-400">
         Carregando painel…
       </main>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-slate-900 px-4 py-5 text-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold leading-tight">Painel do organizador</h1>
-            <p className="truncate text-sm text-slate-400">{config?.titulo}</p>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Link
-              to="/"
-              className="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800"
-            >
-              Ver rifa
-            </Link>
-            <button
-              type="button"
-              onClick={onSair}
-              className="rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-600"
-            >
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl space-y-4 p-4">
+    <div className="flex min-h-screen justify-center px-4 py-8">
+      <div className="flex w-full max-w-[560px] flex-col gap-4">
+        <header className="nav rounded-md">
+          <span className="nav-brand flex min-w-0 items-center gap-2">
+            <Ticket size={20} className="shrink-0 text-accent" aria-hidden="true" />
+            <span className="truncate">{config?.titulo}</span>
+          </span>
+          <Link to="/" className="btn btn-secondary shrink-0">
+            Ver rifa
+          </Link>
+          <button type="button" className="btn btn-secondary shrink-0" onClick={onSair}>
+            Sair
+          </button>
+        </header>
         {resumo && <Resumo resumo={resumo} />}
 
         {erro && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">
+          <p
+            className="m-0 rounded-md bg-neutral-900 p-3 text-[13px] text-accent-200 shadow-[inset_0_0_0_1px_var(--color-accent-700)]"
+            role="alert"
+          >
             {erro}
           </p>
         )}
@@ -213,13 +207,12 @@ function Painel({ senha, onSair }) {
           erro={erroSorteio}
           onSortear={aoSortear}
         />
-      </main>
+      </div>
 
       {liberacaoPendente && (
         <ModalConfirmacao
           titulo={`Liberar números da reserva #${liberacaoPendente.id}?`}
           rotuloConfirmar="Liberar números"
-          destrutivo
           onCancelar={() => setLiberacaoPendente(null)}
           onConfirmar={() => {
             const alvo = liberacaoPendente;
@@ -245,7 +238,7 @@ function Painel({ senha, onSair }) {
             {liberacaoPendente.numeros.map((n) => (
               <span
                 key={n}
-                className="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-bold tabular-nums text-slate-700"
+                className="rounded-sm bg-neutral-800 px-2 py-[2px] text-[13px] font-medium tabular-nums text-neutral-300"
               >
                 {n}
               </span>
@@ -259,30 +252,34 @@ function Painel({ senha, onSair }) {
 
 function Resumo({ resumo }) {
   const cartoes = [
-    { rotulo: 'Livres', valor: resumo.livre, cor: 'text-emerald-600' },
-    { rotulo: 'Reservados', valor: resumo.reservado, cor: 'text-amber-600' },
-    { rotulo: 'Confirmados', valor: resumo.confirmado, cor: 'text-red-600' },
+    { rotulo: 'Livres', valor: resumo.livre },
+    { rotulo: 'Aguardando', valor: resumo.reservado },
+    { rotulo: 'Pagos', valor: resumo.confirmado },
   ];
 
   return (
-    <section className="space-y-3">
+    <section className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         {cartoes.map((c) => (
-          <div key={c.rotulo} className="rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm">
-            <p className="text-xs font-medium text-slate-500">{c.rotulo}</p>
-            <p className={`text-2xl font-bold tabular-nums ${c.cor}`}>{c.valor}</p>
+          <div key={c.rotulo} className="card gap-1 p-3 text-center">
+            <span className="text-[10px] uppercase tracking-[0.08em] text-neutral-400">
+              {c.rotulo}
+            </span>
+            <span className="font-heading text-[24px] font-medium tabular-nums text-ink">
+              {c.valor}
+            </span>
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          Total arrecadado (números confirmados)
-        </p>
-        <p className="text-3xl font-bold text-slate-900">{formatarMoeda(resumo.total_arrecadado)}</p>
-        <p className="mt-1 text-xs text-slate-500">
+      <div className="card elev-sm">
+        <span className="card-kicker">Total arrecadado</span>
+        <span className="font-heading text-[30px] font-medium tabular-nums leading-none text-ink">
+          {formatarMoeda(resumo.total_arrecadado)}
+        </span>
+        <span className="text-[11px] text-neutral-500">
           de {formatarMoeda(resumo.total_potencial)} se todos os {resumo.total_numeros} números
           forem vendidos
-        </p>
+        </span>
       </div>
     </section>
   );

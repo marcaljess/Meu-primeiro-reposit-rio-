@@ -1,3 +1,7 @@
+/* Sistema de design Nocturne: tokens e componentes. Fonte da verdade do visual —
+   toda cor, fonte, espaçamento e raio sai das variáveis dele. */
+@import './styles/nocturne.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,5 +11,14 @@ html {
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* O foco visível do sistema vale para tudo, inclusive o que o preflight zera. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }

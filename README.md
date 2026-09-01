@@ -71,11 +71,11 @@ npm start        # Express serve a API e o front no mesmo endereço (PORT)
 
 ### Participante (página pública)
 
-1. Toca nos números **verdes** (livres) que quiser — pode escolher vários.
+1. Toca nos números **livres** (só contorno) que quiser — ou usa a escolha rápida de 5, 10 ou 20 números.
 2. Informa nome e WhatsApp e confirma.
 3. A tela mostra a **chave PIX** e o **valor total** (nº de números × valor).
    Basta pagar e mandar o comprovante ao organizador.
-4. Os números escolhidos ficam **amarelos** (reservados) para todo mundo.
+4. Os números escolhidos passam a aparecer como **aguardando pagamento** para todo mundo.
 
 A grade se atualiza sozinha a cada 5 segundos, então dá para acompanhar a rifa
 enchendo em tempo quase real. **Nenhum dado pessoal aparece na página pública** —
@@ -96,6 +96,33 @@ só o status de cada número.
 
 > A senha fica apenas na memória da aba (nunca em `localStorage`), então
 > recarregar a página pede login de novo.
+
+---
+
+## Design
+
+A interface segue o sistema **Nocturne**, exportado do Claude Design e versionado
+em `client/src/styles/nocturne.css` — essa folha é a fonte da verdade do visual.
+
+- Fundo escuro `#161826`, texto `#e9e9ed` e um único acento blurple `#9184d9`,
+  usado como **contorno e brilho, nunca como preenchimento de área**.
+- Tipografia Inter (via Google Fonts), raios de 8px e escala de espaçamento
+  compacta (densidade 0.7×).
+- Ícones [Phosphor](https://phosphoricons.com) (`@phosphor-icons/react`).
+- Componentes prontos na folha: `.btn`, `.card`, `.input`, `.tag`, `.nav`,
+  `.dialog`. O guia completo está em `client/src/styles/nocturne-readme.md`.
+
+O `tailwind.config.js` espelha os tokens, então classes como `bg-surface`,
+`text-accent-300` ou `rounded-md` resolvem para as variáveis do sistema — **nenhuma
+cor fica escrita à mão nos componentes**. Para mudar o visual, edite os tokens no
+topo de `nocturne.css`: tudo acompanha.
+
+A tela pública segue a direção "prova primeiro": herói do prêmio, progresso de
+vendas, escolha rápida (5/10/20 números), grade e um card explicando o
+tratamento dos dados, com a barra de resumo fixa no rodapé.
+
+Os três estados do número não usam cor semântica saturada: livre é só contorno,
+aguardando pagamento é um cinza cheio e pago é o acento tingido.
 
 ---
 

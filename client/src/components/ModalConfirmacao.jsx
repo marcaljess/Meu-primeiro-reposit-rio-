@@ -8,7 +8,6 @@ export default function ModalConfirmacao({
   titulo,
   children,
   rotuloConfirmar = 'Confirmar',
-  destrutivo = false,
   onConfirmar,
   onCancelar,
 }) {
@@ -20,36 +19,24 @@ export default function ModalConfirmacao({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/60 p-0 sm:items-center sm:p-4"
+      className="dialog-backdrop z-50 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="titulo-confirmacao"
       onClick={(e) => e.target === e.currentTarget && onCancelar()}
     >
-      <div className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
-        <h2 id="titulo-confirmacao" className="text-lg font-bold text-slate-900">
+      <div className="dialog">
+        <h2 id="titulo-confirmacao" className="dialog-title">
           {titulo}
         </h2>
 
-        <div className="mt-2 text-sm text-slate-600">{children}</div>
+        <div className="dialog-body">{children}</div>
 
-        <div className="mt-5 flex gap-2">
-          <button
-            type="button"
-            onClick={onCancelar}
-            className="flex-1 rounded-lg border border-slate-300 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
+        <div className="dialog-actions">
+          <button type="button" className="btn btn-secondary" onClick={onCancelar}>
             Cancelar
           </button>
-          <button
-            type="button"
-            autoFocus
-            onClick={onConfirmar}
-            className={[
-              'flex-1 rounded-lg px-4 py-3 font-semibold text-white transition',
-              destrutivo ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-900 hover:bg-slate-800',
-            ].join(' ')}
-          >
+          <button type="button" className="btn btn-primary" autoFocus onClick={onConfirmar}>
             {rotuloConfirmar}
           </button>
         </div>

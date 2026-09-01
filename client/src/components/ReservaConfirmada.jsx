@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SealCheck, Copy, Check } from '@phosphor-icons/react';
 import { formatarMoeda } from '../api';
 
 export default function ReservaConfirmada({ reserva, onFechar }) {
@@ -16,66 +17,73 @@ export default function ReservaConfirmada({ reserva, onFechar }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/60 p-0 sm:items-center sm:p-4"
+      className="dialog-backdrop z-50 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="titulo-confirmada"
     >
-      <div className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
+      <div className="dialog">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-lg">
-            ✓
-          </span>
-          <h2 id="titulo-confirmada" className="text-lg font-bold text-slate-900">
-            Números reservados!
+          <SealCheck size={22} weight="fill" className="text-accent" aria-hidden="true" />
+          <h2 id="titulo-confirmada" className="dialog-title">
+            Números reservados
           </h2>
         </div>
 
-        <p className="mt-3 text-sm text-slate-600">
-          Reserva <strong>#{reserva.id}</strong> em nome de <strong>{reserva.nome}</strong>. Seus
-          números ficam guardados como <em>reservados</em> até o organizador confirmar o pagamento.
+        <p className="dialog-body m-0">
+          Reserva <strong className="font-medium text-ink">#{reserva.id}</strong> em nome de{' '}
+          <strong className="font-medium text-ink">{reserva.nome}</strong>. Seus números ficam
+          guardados como <em>aguardando pagamento</em> até o organizador confirmar.
         </p>
 
-        <p className="mt-3 flex flex-wrap gap-1.5">
+        <p className="flex flex-wrap gap-1">
           {reserva.numeros.map((n) => (
             <span
               key={n}
-              className="rounded-md bg-amber-400 px-2 py-0.5 text-sm font-bold tabular-nums text-amber-950"
+              className="rounded-sm bg-neutral-800 px-2 py-[2px] text-[13px] font-medium tabular-nums text-neutral-300"
             >
-              {n}
+              {String(n).padStart(2, '0')}
             </span>
           ))}
         </p>
 
-        <div className="mt-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Valor total</p>
-          <p className="text-3xl font-bold text-slate-900">{formatarMoeda(reserva.total)}</p>
+        <div className="flex flex-col gap-2 rounded-md bg-neutral-900 p-4">
+          <span className="text-[10px] uppercase tracking-[0.1em] text-neutral-400">
+            Valor total
+          </span>
+          <span className="font-heading text-[28px] font-medium tabular-nums leading-none text-ink">
+            {formatarMoeda(reserva.total)}
+          </span>
 
-          <p className="mt-4 text-xs font-medium uppercase tracking-wide text-slate-500">
+          <span className="mt-3 text-[10px] uppercase tracking-[0.1em] text-neutral-400">
             Chave PIX
-          </p>
-          <p className="break-all text-base font-semibold text-slate-900">{reserva.chave_pix}</p>
+          </span>
+          <span className="break-all text-[15px] font-medium text-accent-300">
+            {reserva.chave_pix}
+          </span>
 
-          <button
-            type="button"
-            onClick={copiarPix}
-            className="mt-3 w-full rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white transition hover:bg-emerald-700"
-          >
-            {copiado ? 'Chave copiada!' : 'Copiar chave PIX'}
+          <button type="button" className="btn btn-primary btn-block" onClick={copiarPix}>
+            {copiado ? (
+              <>
+                <Check size={15} aria-hidden="true" /> Chave copiada
+              </>
+            ) : (
+              <>
+                <Copy size={15} aria-hidden="true" /> Copiar chave PIX
+              </>
+            )}
           </button>
         </div>
 
-        <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-          <strong>Importante:</strong> faça o PIX de {formatarMoeda(reserva.total)} e envie o
-          comprovante ao organizador pelo WhatsApp. Assim que ele validar o pagamento, seus números
-          passam a ficar <strong>confirmados</strong> e entram no sorteio.
+        <p className="m-0 rounded-md bg-neutral-900 p-3 text-[13px] leading-relaxed text-neutral-300 shadow-[inset_0_0_0_1px_var(--color-accent-800)]">
+          Faça o PIX de <strong className="font-medium text-ink">{formatarMoeda(reserva.total)}</strong>{' '}
+          e envie o comprovante ao organizador pelo WhatsApp, junto com o código{' '}
+          <strong className="font-medium text-ink">#{reserva.id}</strong>. Assim que ele validar, seus
+          números passam a constar como <strong className="font-medium text-ink">pagos</strong> e
+          entram no sorteio.
         </p>
 
-        <button
-          type="button"
-          onClick={onFechar}
-          className="mt-4 w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
-        >
+        <button type="button" className="btn btn-secondary btn-block" onClick={onFechar}>
           Voltar para a rifa
         </button>
       </div>

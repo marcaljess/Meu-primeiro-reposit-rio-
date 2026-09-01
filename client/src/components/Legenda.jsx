@@ -1,25 +1,26 @@
-export default function Legenda({ contadores }) {
-  const itens = [
-    { chave: 'livre', rotulo: 'Livres', cor: 'bg-emerald-500' },
-    { chave: 'reservado', rotulo: 'Reservados', cor: 'bg-amber-400' },
-    { chave: 'confirmado', rotulo: 'Confirmados', cor: 'bg-red-500' },
-  ];
+const ITENS = [
+  { chave: 'livre', rotulo: 'Livre', amostra: 'shadow-[inset_0_0_0_1px_var(--color-neutral-600)]' },
+  { chave: 'reservado', rotulo: 'Aguardando pagamento', amostra: 'bg-neutral-800' },
+  { chave: 'confirmado', rotulo: 'Pago', amostra: 'bg-accent-800' },
+];
 
+/** Legenda da grade: uma linha de amostras, não um painel de contadores. */
+export default function Legenda({ contadores }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {itens.map((item) => (
-        <div
+    <div className="flex flex-wrap gap-4">
+      {ITENS.map((item) => (
+        <span
           key={item.chave}
-          className="rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm"
+          className="flex items-center gap-1 text-[11px] text-neutral-400"
         >
-          <div className="flex items-center justify-center gap-1.5">
-            <span className={`h-3 w-3 rounded-full ${item.cor}`} aria-hidden="true" />
-            <span className="text-xs font-medium text-slate-500 sm:text-sm">{item.rotulo}</span>
-          </div>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">
-            {contadores?.[item.chave] ?? 0}
-          </p>
-        </div>
+          <span className={`h-[9px] w-[9px] rounded-[2px] ${item.amostra}`} aria-hidden="true" />
+          {item.rotulo}
+          {contadores && (
+            <span className="tabular-nums text-neutral-500">
+              ({contadores[item.chave] ?? 0})
+            </span>
+          )}
+        </span>
       ))}
     </div>
   );
