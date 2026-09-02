@@ -37,7 +37,11 @@ export default function Grade({ numeros, selecionados, onToggle }) {
               'flex aspect-square items-center justify-center rounded-sm border-0 p-0',
               'font-body text-[13px] font-medium tabular-nums transition-[background-color,color,box-shadow] duration-150',
               escolhido
-                ? 'bg-accent-700 text-accent-100 shadow-[inset_0_0_0_1px_var(--color-accent)]'
+                // O acento cheio é exclusivo da seleção: fundo claro e saturado
+                // com texto escuro, o oposto de "pago" (fundo apagado, texto
+                // claro). A diferença deixa de ser de tom e passa a ser de
+                // contraste invertido, que se enxerga de relance.
+                ? 'bg-accent text-bg shadow-[0_0_0_1px_var(--color-accent-300),0_0_16px_rgba(145,132,217,0.45)]'
                 : ESTILOS[status],
             ].join(' ')}
           >

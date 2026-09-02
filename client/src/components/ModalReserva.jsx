@@ -50,7 +50,7 @@ export default function ModalReserva({ numeros, config, onFechar, onSucesso }) {
             {numeros.map((n) => (
               <span
                 key={n}
-                className="rounded-sm bg-accent-800 px-2 py-[2px] text-[13px] font-medium tabular-nums text-accent-100"
+                className="rounded-sm bg-accent px-2 py-[2px] text-[13px] font-medium tabular-nums text-bg"
               >
                 {String(n).padStart(2, '0')}
               </span>

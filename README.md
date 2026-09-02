@@ -130,8 +130,15 @@ A tela pública segue a direção "prova primeiro": herói do prêmio, progresso
 vendas, escolha rápida (5/10/20 números), grade e um card explicando o
 tratamento dos dados, com a barra de resumo fixa no rodapé.
 
-Os três estados do número não usam cor semântica saturada: livre é só contorno,
-aguardando pagamento é um cinza cheio e pago é o acento tingido.
+Os estados do número não usam cor semântica saturada: livre é só contorno,
+aguardando pagamento é um cinza cheio e pago é o acento tingido (fundo apagado,
+texto claro).
+
+O **acento cheio é exclusivo da seleção**: o número que você escolheu fica com
+fundo roxo saturado, texto escuro e um brilho em volta. A diferença entre
+"selecionado" e "pago" deixa de ser de tom — que se confundia, por serem dois
+degraus vizinhos da mesma rampa — e passa a ser de contraste invertido, que se
+enxerga de relance.
 
 A foto do prêmio entra a 42% de opacidade atrás do título, com um véu que
 escurece até a cor do card — assim o texto continua legível sobre qualquer
