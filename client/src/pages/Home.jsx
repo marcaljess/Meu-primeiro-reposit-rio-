@@ -4,6 +4,7 @@ import { Ticket } from '@phosphor-icons/react';
 
 import Grade from '../components/Grade.jsx';
 import Legenda from '../components/Legenda.jsx';
+import Paginacao from '../components/Paginacao.jsx';
 import ProgressoRifa from '../components/ProgressoRifa.jsx';
 import CardConfianca from '../components/CardConfianca.jsx';
 import ModalReserva from '../components/ModalReserva.jsx';
@@ -12,6 +13,7 @@ import { getConfig, getNumeros, formatarMoeda } from '../api';
 
 const INTERVALO_ATUALIZACAO = 5000;
 const ATALHOS = [5, 10, 20];
+const NUMEROS_POR_PAGINA = 60;
 
 export default function Home() {
   const [config, setConfig] = useState(null);
@@ -22,6 +24,7 @@ export default function Home() {
   const [erro, setErro] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [reservaFeita, setReservaFeita] = useState(null);
+  const [pagina, setPagina] = useState(0);
 
   const carregarNumeros = useCallback(async () => {
     const dados = await getNumeros();
@@ -74,7 +77,13 @@ export default function Home() {
     for (let i = 0; i < livres.length && escolhidos.length < quantidade; i += passo) {
       escolhidos.push(livres[i]);
     }
-    setSelecionados(escolhidos.sort((a, b) => a - b));
+    const ordenados = escolhidos.sort((a, b) => a - b);
+    setSelecionados(ordenados);
+    // Leva à página do primeiro número escolhido, senão a seleção some da vista.
+    if (ordenados.length > 0) {
+      const indice = numeros.findIndex((n) => n.numero === ordenados[0]);
+      if (indice >= 0) setPagina(Math.floor(indice / NUMEROS_POR_PAGINA));
+    }
   }
 
   async function aoReservar(reserva) {
@@ -86,6 +95,12 @@ export default function Home() {
 
   const total = selecionados.length * (config?.valor_numero ?? 0);
   const livresDisponiveis = contadores.livre;
+  const totalPaginas = Math.max(1, Math.ceil(numeros.length / NUMEROS_POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas - 1);
+  const numerosDaPagina = numeros.slice(
+    paginaAtual * NUMEROS_POR_PAGINA,
+    (paginaAtual + 1) * NUMEROS_POR_PAGINA
+  );
 
   if (carregando) {
     return (
@@ -151,7 +166,15 @@ export default function Home() {
 
           <Legenda contadores={contadores} />
 
-          <Grade numeros={numeros} selecionados={selecionados} onToggle={alternar} />
+          <Grade numeros={numerosDaPagina} selecionados={selecionados} onToggle={alternar} />
+
+          <Paginacao
+            pagina={paginaAtual}
+            totalPaginas={totalPaginas}
+            tamanho={NUMEROS_POR_PAGINA}
+            totalNumeros={numeros.length}
+            onIr={setPagina}
+          />
         </section>
 
         <CardConfianca />

@@ -20,6 +20,7 @@ const CONFIG_PADRAO = {
   valor_numero: 10,
   chave_pix: 'seu-email@exemplo.com',
   data_sorteio: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+  foto_url: '',
 };
 
 function migrate() {
@@ -31,7 +32,8 @@ function migrate() {
       total_numeros  INTEGER NOT NULL,
       valor_numero   REAL    NOT NULL,
       chave_pix      TEXT    NOT NULL DEFAULT '',
-      data_sorteio   TEXT    NOT NULL DEFAULT ''
+      data_sorteio   TEXT    NOT NULL DEFAULT '',
+      foto_url       TEXT    NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS reservas (
@@ -63,12 +65,20 @@ function migrate() {
   `);
 }
 
+/** Adiciona colunas novas a bancos criados por versões anteriores. */
+function migrarColunas() {
+  const colunas = db.prepare('PRAGMA table_info(config)').all().map((c) => c.name);
+  if (!colunas.includes('foto_url')) {
+    db.exec("ALTER TABLE config ADD COLUMN foto_url TEXT NOT NULL DEFAULT ''");
+  }
+}
+
 function seed() {
   const existe = db.prepare('SELECT 1 FROM config WHERE id = 1').get();
   if (!existe) {
     db.prepare(
-      `INSERT INTO config (id, titulo, descricao, total_numeros, valor_numero, chave_pix, data_sorteio)
-       VALUES (1, @titulo, @descricao, @total_numeros, @valor_numero, @chave_pix, @data_sorteio)`
+      `INSERT INTO config (id, titulo, descricao, total_numeros, valor_numero, chave_pix, data_sorteio, foto_url)
+       VALUES (1, @titulo, @descricao, @total_numeros, @valor_numero, @chave_pix, @data_sorteio, @foto_url)`
     ).run(CONFIG_PADRAO);
   }
   const { total_numeros } = getConfig();
@@ -102,8 +112,20 @@ function getConfig() {
 
 function init() {
   migrate();
+  migrarColunas();
   seed();
   return db;
 }
 
-module.exports = { db, init, getConfig, sincronizarNumeros, CONFIG_PADRAO, DB_PATH };
+const UPLOADS_DIR = path.join(path.dirname(DB_PATH), 'uploads');
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+module.exports = {
+  db,
+  init,
+  getConfig,
+  sincronizarNumeros,
+  CONFIG_PADRAO,
+  DB_PATH,
+  UPLOADS_DIR,
+};

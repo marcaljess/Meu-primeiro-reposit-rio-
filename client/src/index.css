@@ -22,3 +22,25 @@ body {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Foto do prêmio: entra esmaecida atrás do título, com um véu que escurece até
+   a cor do card, para o texto continuar legível sobre qualquer imagem. */
+.foto-premio {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+}
+
+.foto-veu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-bg) 25%, transparent) 0%,
+    color-mix(in srgb, var(--color-surface) 80%, transparent) 65%,
+    var(--color-surface) 100%
+  );
+}

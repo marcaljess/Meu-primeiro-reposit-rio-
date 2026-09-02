@@ -57,6 +57,17 @@ export const sortear = (senha) =>
 export const getSorteios = (senha) =>
   requisicao('/api/admin/sorteios', { headers: comSenha(senha) });
 
+/** Envia a foto do prêmio como corpo binário — sem multipart, sem dependência. */
+export const enviarFoto = (senha, arquivo) =>
+  requisicao('/api/admin/foto', {
+    method: 'POST',
+    headers: { ...comSenha(senha), 'Content-Type': arquivo.type },
+    body: arquivo,
+  });
+
+export const removerFoto = (senha) =>
+  requisicao('/api/admin/foto', { method: 'DELETE', headers: comSenha(senha) });
+
 // ---------- Utilidades ----------
 export const formatarMoeda = (valor) =>
   Number(valor ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

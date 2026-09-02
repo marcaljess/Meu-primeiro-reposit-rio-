@@ -1,6 +1,8 @@
 const express = require('express');
-const { randomInt } = require('crypto');
-const { db, getConfig, sincronizarNumeros } = require('../db');
+const fs = require('fs');
+const path = require('path');
+const { randomInt, randomBytes } = require('crypto');
+const { db, getConfig, sincronizarNumeros, UPLOADS_DIR } = require('../db');
 const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -22,6 +24,7 @@ router.put('/config', (req, res) => {
   const descricao = String(b.descricao ?? atual.descricao);
   const chave_pix = String(b.chave_pix ?? atual.chave_pix).trim();
   const data_sorteio = String(b.data_sorteio ?? atual.data_sorteio).trim();
+  const foto_url = String(b.foto_url ?? atual.foto_url).trim();
   const total_numeros = Number(b.total_numeros ?? atual.total_numeros);
   const valor_numero = Number(b.valor_numero ?? atual.valor_numero);
 
@@ -31,6 +34,10 @@ router.put('/config', (req, res) => {
   }
   if (!Number.isFinite(valor_numero) || valor_numero < 0) {
     return res.status(400).json({ erro: 'Valor por número inválido.' });
+  }
+  // Ou uma foto que nós guardamos, ou um endereço http(s) de fora.
+  if (foto_url && !/^(\/uploads\/[\w.-]+|https?:\/\/\S+)$/.test(foto_url)) {
+    return res.status(400).json({ erro: 'Endereço de foto inválido.' });
   }
 
   // Ao reduzir o total, números já reservados/confirmados não são apagados.
@@ -49,12 +56,86 @@ router.put('/config', (req, res) => {
   db.transaction(() => {
     db.prepare(
       `UPDATE config SET titulo = ?, descricao = ?, total_numeros = ?,
-              valor_numero = ?, chave_pix = ?, data_sorteio = ?
+              valor_numero = ?, chave_pix = ?, data_sorteio = ?, foto_url = ?
        WHERE id = 1`
-    ).run(titulo, descricao, total_numeros, valor_numero, chave_pix, data_sorteio);
+    ).run(titulo, descricao, total_numeros, valor_numero, chave_pix, data_sorteio, foto_url);
     sincronizarNumeros(total_numeros);
   })();
 
+  res.json(getConfig());
+});
+
+// ---------------------------------------------------------------------------
+// Foto do prêmio
+// ---------------------------------------------------------------------------
+
+const TIPOS_IMAGEM = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+};
+
+const LIMITE_FOTO = 5 * 1024 * 1024;
+
+/**
+ * Confere os bytes iniciais do arquivo. O Content-Type vem do cliente e não é
+ * confiável — sem isso daria para gravar qualquer conteúdo com rótulo de imagem.
+ */
+function ehImagem(buffer, tipo) {
+  if (!buffer || buffer.length < 12) return false;
+  if (tipo === 'image/jpeg') return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (tipo === 'image/png') {
+    return buffer.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+  if (tipo === 'image/webp') {
+    return buffer.slice(0, 4).toString('ascii') === 'RIFF' && buffer.slice(8, 12).toString('ascii') === 'WEBP';
+  }
+  return false;
+}
+
+/** Apaga a foto anterior, se ela for um arquivo que nós mesmos guardamos. */
+function apagarFotoAnterior(url) {
+  if (!url || !url.startsWith('/uploads/')) return;
+  const alvo = path.join(UPLOADS_DIR, path.basename(url));
+  // path.basename já impede subir de diretório; a checagem abaixo é a garantia.
+  if (!alvo.startsWith(UPLOADS_DIR)) return;
+  fs.rm(alvo, { force: true }, () => {});
+}
+
+/** POST /api/admin/foto — corpo é o arquivo cru, com o Content-Type da imagem. */
+router.post(
+  '/foto',
+  express.raw({ type: Object.keys(TIPOS_IMAGEM), limit: LIMITE_FOTO }),
+  (req, res) => {
+    const tipo = String(req.get('content-type') || '').split(';')[0].trim();
+    const extensao = TIPOS_IMAGEM[tipo];
+
+    if (!extensao) {
+      return res.status(415).json({ erro: 'Envie uma imagem JPEG, PNG ou WebP.' });
+    }
+    if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+      return res.status(400).json({ erro: 'Arquivo vazio.' });
+    }
+    if (!ehImagem(req.body, tipo)) {
+      return res.status(400).json({ erro: 'O arquivo não parece ser uma imagem válida.' });
+    }
+
+    const nome = randomBytes(16).toString('hex') + extensao;
+    fs.writeFileSync(path.join(UPLOADS_DIR, nome), req.body);
+
+    const anterior = getConfig().foto_url;
+    db.prepare('UPDATE config SET foto_url = ? WHERE id = 1').run('/uploads/' + nome);
+    apagarFotoAnterior(anterior);
+
+    res.status(201).json(getConfig());
+  }
+);
+
+/** DELETE /api/admin/foto — remove a foto do prêmio. */
+router.delete('/foto', (req, res) => {
+  const anterior = getConfig().foto_url;
+  db.prepare("UPDATE config SET foto_url = '' WHERE id = 1").run();
+  apagarFotoAnterior(anterior);
   res.json(getConfig());
 });
 

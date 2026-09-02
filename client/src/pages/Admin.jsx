@@ -13,6 +13,8 @@ import {
   getConfig,
   getReservas,
   getSorteios,
+  enviarFoto,
+  removerFoto,
   liberarReserva,
   login,
   sortear,
@@ -189,6 +191,8 @@ function Painel({ senha, onSair }) {
               setConfig(novo);
               await carregar();
             }}
+            onEnviarFoto={async (arquivo) => setConfig(await enviarFoto(senha, arquivo))}
+            onRemoverFoto={async () => setConfig(await removerFoto(senha))}
           />
         )}
 

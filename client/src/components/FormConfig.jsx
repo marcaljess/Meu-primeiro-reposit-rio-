@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CaretDown, CaretUp } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, Image as ImagemIcone, Trash } from '@phosphor-icons/react';
 
 const CAMPOS = [
   { nome: 'titulo', rotulo: 'Prêmio / título da rifa', tipo: 'text' },
@@ -9,11 +9,12 @@ const CAMPOS = [
   { nome: 'data_sorteio', rotulo: 'Data do sorteio', tipo: 'date' },
 ];
 
-export default function FormConfig({ config, onSalvar }) {
+export default function FormConfig({ config, onSalvar, onEnviarFoto, onRemoverFoto }) {
   const [form, setForm] = useState(config);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState(null);
   const [aberto, setAberto] = useState(false);
+  const [foto, setFoto] = useState({ enviando: false, erro: null });
 
   useEffect(() => setForm(config), [config]);
 
@@ -86,6 +87,76 @@ export default function FormConfig({ config, onSalvar }) {
               value={form.descricao ?? ''}
               onChange={(e) => alterar('descricao', e.target.value)}
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="foto">Foto do prêmio</label>
+
+            {config.foto_url ? (
+              <div className="flex items-center gap-3">
+                <img
+                  src={config.foto_url}
+                  alt="Foto do prêmio atual"
+                  className="h-16 w-24 shrink-0 rounded-md object-cover"
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={foto.enviando}
+                  onClick={async () => {
+                    setFoto({ enviando: true, erro: null });
+                    try {
+                      await onRemoverFoto();
+                      setFoto({ enviando: false, erro: null });
+                    } catch (err) {
+                      setFoto({ enviando: false, erro: err.message });
+                    }
+                  }}
+                >
+                  <Trash size={15} aria-hidden="true" /> Remover
+                </button>
+              </div>
+            ) : (
+              <p className="m-0 flex items-center gap-2 text-[12px] text-neutral-500">
+                <ImagemIcone size={16} aria-hidden="true" />
+                Nenhuma foto ainda. Ela aparece esmaecida atrás do título.
+              </p>
+            )}
+
+            <input
+              id="foto"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={foto.enviando}
+              className="input mt-2 file:mr-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-neutral-800 file:px-3 file:py-1 file:font-body file:text-[12px] file:text-ink"
+              onChange={async (e) => {
+                const arquivo = e.target.files?.[0];
+                e.target.value = '';
+                if (!arquivo) return;
+                if (arquivo.size > 5 * 1024 * 1024) {
+                  setFoto({ enviando: false, erro: 'A imagem passa de 5 MB. Envie uma menor.' });
+                  return;
+                }
+                setFoto({ enviando: true, erro: null });
+                try {
+                  await onEnviarFoto(arquivo);
+                  setFoto({ enviando: false, erro: null });
+                } catch (err) {
+                  setFoto({ enviando: false, erro: err.message });
+                }
+              }}
+            />
+            <p className="m-0 mt-1 text-[11px] text-neutral-500">
+              {foto.enviando ? 'Enviando…' : 'JPEG, PNG ou WebP, até 5 MB.'}
+            </p>
+            {foto.erro && (
+              <p
+                className="m-0 mt-2 rounded-md bg-neutral-900 p-2 text-[12px] text-accent-200 shadow-[inset_0_0_0_1px_var(--color-accent-700)]"
+                role="alert"
+              >
+                {foto.erro}
+              </p>
+            )}
           </div>
 
           <p className="m-0 text-[11px] text-neutral-500">

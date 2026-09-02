@@ -11,16 +11,31 @@ export default function ProgressoRifa({ config, contadores }) {
 
   return (
     <section className="card elev-md overflow-hidden p-0">
-      <div className="flex min-h-[132px] flex-col justify-end bg-[linear-gradient(160deg,var(--color-neutral-800),var(--color-surface))] p-4 sm:min-h-[168px]">
-        <span className="card-kicker m-0">Prêmio</span>
-        <h1 className="mt-1 font-heading text-[26px] font-medium leading-[1.15] tracking-[-0.02em] text-ink [text-wrap:pretty]">
-          {config.titulo}
-        </h1>
-        {config.descricao && (
-          <p className="mt-2 text-[13px] leading-relaxed text-neutral-400 [text-wrap:pretty]">
-            {config.descricao}
-          </p>
+      <div
+        className={[
+          'relative flex flex-col justify-end overflow-hidden p-4',
+          'bg-[linear-gradient(160deg,var(--color-neutral-800),var(--color-surface))]',
+          config.foto_url ? 'min-h-[180px] sm:min-h-[220px]' : 'min-h-[132px] sm:min-h-[168px]',
+        ].join(' ')}
+      >
+        {config.foto_url && (
+          <>
+            <img className="foto-premio" src={config.foto_url} alt="" aria-hidden="true" />
+            <span className="foto-veu" aria-hidden="true" />
+          </>
         )}
+
+        <div className="relative">
+          <span className="card-kicker m-0">Prêmio</span>
+          <h1 className="mt-1 font-heading text-[26px] font-medium leading-[1.15] tracking-[-0.02em] text-ink [text-wrap:pretty]">
+            {config.titulo}
+          </h1>
+          {config.descricao && (
+            <p className="mt-2 text-[13px] leading-relaxed text-neutral-400 [text-wrap:pretty]">
+              {config.descricao}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 border-t border-divider p-4">

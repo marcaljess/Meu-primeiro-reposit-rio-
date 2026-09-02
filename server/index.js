@@ -5,7 +5,7 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 
-const { init, DB_PATH } = require('./db');
+const { init, DB_PATH, UPLOADS_DIR } = require('./db');
 const rotasPublicas = require('./routes/public');
 const rotasAdmin = require('./routes/admin');
 
@@ -16,6 +16,9 @@ app.use(cors());
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// Fotos do prêmio enviadas pelo organizador.
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '7d' }));
 app.use('/api', rotasPublicas);
 app.use('/api/admin', rotasAdmin);
 

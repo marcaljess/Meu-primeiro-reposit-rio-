@@ -72,6 +72,8 @@ npm start        # Express serve a API e o front no mesmo endereço (PORT)
 ### Participante (página pública)
 
 1. Toca nos números **livres** (só contorno) que quiser — ou usa a escolha rápida de 5, 10 ou 20 números.
+   A grade vai de 60 em 60, com uma barra de páginas abaixo dela; a seleção
+   continua valendo ao trocar de página.
 2. Informa nome e WhatsApp e confirma.
 3. A tela mostra a **chave PIX** e o **valor total** (nº de números × valor).
    Basta pagar e mandar o comprovante ao organizador.
@@ -85,7 +87,8 @@ só o status de cada número.
 
 1. Entra com a senha do `.env`.
 2. **Configuração da rifa** — edita título, descrição, total de números, valor,
-   chave PIX e data do sorteio.
+   chave PIX, data do sorteio e a **foto do prêmio** (JPEG, PNG ou WebP, até
+   5 MB), que aparece esmaecida atrás do título na página pública.
 3. **Reservas** — vê nome, contato, números, status e data de cada reserva, com
    filtros por situação.
    - **Validar pagamento**: os números viram `confirmado` e a reserva sai da
@@ -124,6 +127,10 @@ tratamento dos dados, com a barra de resumo fixa no rodapé.
 Os três estados do número não usam cor semântica saturada: livre é só contorno,
 aguardando pagamento é um cinza cheio e pago é o acento tingido.
 
+A foto do prêmio entra a 42% de opacidade atrás do título, com um véu que
+escurece até a cor do card — assim o texto continua legível sobre qualquer
+imagem, clara ou escura.
+
 ---
 
 ## Regras de negócio
@@ -160,6 +167,13 @@ ou `409` com `{ erro, numeros }` quando algum número já foi pego.
 
 Exigem o header `x-admin-password`. Sem ele (ou com senha errada) → `401`.
 
+`POST /api/admin/foto` recebe o arquivo **cru no corpo**, com o `Content-Type` da
+imagem (`image/jpeg`, `image/png` ou `image/webp`) — sem multipart, sem
+dependência extra. O servidor confere os bytes iniciais do arquivo, porque o
+`Content-Type` vem do cliente e não é confiável. A imagem é gravada em
+`uploads/`, ao lado do banco, e servida em `/uploads/<arquivo>`; trocar ou
+remover apaga a anterior.
+
 | Método | Rota                                  | Descrição                     |
 | ------ | ------------------------------------- | ----------------------------- |
 | `POST` | `/api/admin/login`                    | Valida a senha                 |
@@ -167,6 +181,8 @@ Exigem o header `x-admin-password`. Sem ele (ou com senha errada) → `401`.
 | `GET`  | `/api/admin/reservas`                 | Reservas completas + resumo    |
 | `POST` | `/api/admin/reservas/:id/confirmar`   | Valida o pagamento (regra 4)   |
 | `POST` | `/api/admin/reservas/:id/liberar`     | Libera os números (regra 5)    |
+| `POST` | `/api/admin/foto`                     | Envia a foto do prêmio         |
+| `DELETE` | `/api/admin/foto`                   | Remove a foto do prêmio        |
 | `POST` | `/api/admin/sortear`                  | Sorteia (regra 6)              |
 | `GET`  | `/api/admin/sorteios`                 | Histórico de sorteios          |
 
@@ -175,7 +191,7 @@ Exigem o header `x-admin-password`. Sem ele (ou com senha errada) → `401`.
 ## Modelo de dados
 
 **`config`** (linha única): `titulo`, `descricao`, `total_numeros`,
-`valor_numero`, `chave_pix`, `data_sorteio`.
+`valor_numero`, `chave_pix`, `data_sorteio`, `foto_url`.
 
 **`reservas`**: `id`, `nome`, `contato`, `criada_em`, `status`
 (`pendente` | `paga` | `cancelada`), `paga_em`.
@@ -221,6 +237,10 @@ O ponto de atenção é sempre o mesmo: **o arquivo SQLite precisa de armazename
 persistente**. Em plataformas com disco efêmero, o banco é apagado a cada deploy
 ou reinício.
 
+As fotos do prêmio ficam em `uploads/`, na mesma pasta do banco — então definir
+`DB_PATH=/var/data/rifa.db` já coloca as imagens em `/var/data/uploads`, dentro
+do mesmo disco persistente. Nada mais a configurar.
+
 ### Render
 
 1. **New → Web Service**, apontando para este repositório.
@@ -245,6 +265,7 @@ O banco inteiro é um arquivo só. Para guardar uma cópia:
 
 ```bash
 cp /var/data/rifa.db ./backup-rifa-$(date +%F).db
+cp -r /var/data/uploads ./backup-uploads-$(date +%F)
 ```
 
 ---

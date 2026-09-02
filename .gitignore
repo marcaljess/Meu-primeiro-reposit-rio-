@@ -6,3 +6,7 @@ dist/
 *.db-wal
 *.db-shm
 .DS_Store
+
+# fotos enviadas pelo organizador
+server/uploads/
+uploads/
