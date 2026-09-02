@@ -72,8 +72,9 @@ npm start        # Express serve a API e o front no mesmo endereço (PORT)
 ### Participante (página pública)
 
 1. Toca nos números **livres** (só contorno) que quiser — ou usa a escolha rápida de 5, 10 ou 20 números.
-   A grade vai de 60 em 60, com uma barra de páginas abaixo dela; a seleção
-   continua valendo ao trocar de página.
+   A grade vai de 60 em 60, com uma barra de páginas abaixo dela — cada botão
+   mostra a faixa que abre ("01–60") e a página atual fica sempre centralizada
+   no trilho. A seleção continua valendo ao trocar de página.
 2. Informa nome e WhatsApp e confirma.
 3. A tela mostra a **chave PIX** e o **valor total** (nº de números × valor).
    Basta pagar e mandar o comprovante ao organizador.
@@ -88,7 +89,8 @@ só o status de cada número.
 1. Entra com a senha do `.env`.
 2. **Configuração da rifa** — edita título, descrição, total de números, valor,
    chave PIX, data do sorteio e a **foto do prêmio** (JPEG, PNG ou WebP, até
-   5 MB), que aparece esmaecida atrás do título na página pública.
+   5 MB), que aparece esmaecida atrás do título na página pública. O total vai
+   até 2000 números.
 3. **Reservas** — vê nome, contato, números, status e data de cada reserva, com
    filtros por situação.
    - **Validar pagamento**: os números viram `confirmado` e a reserva sai da
@@ -109,8 +111,12 @@ em `client/src/styles/nocturne.css` — essa folha é a fonte da verdade do visu
 
 - Fundo escuro `#161826`, texto `#e9e9ed` e um único acento blurple `#9184d9`,
   usado como **contorno e brilho, nunca como preenchimento de área**.
-- Tipografia Inter (via Google Fonts), raios de 8px e escala de espaçamento
-  compacta (densidade 0.7×).
+- Tipografia Inter, raios de 8px e escala de espaçamento compacta (densidade
+  0.7×). A fonte é carregada de forma **assíncrona** em `client/index.html`, e
+  não pelo `@import` original da folha: o `@import` bloqueia a renderização, e
+  numa rede que não alcançasse o Google Fonts a página ficava em branco por
+  12 segundos. Agora ela aparece na hora com a fonte do sistema e troca para a
+  Inter quando ela chega.
 - Ícones [Phosphor](https://phosphoricons.com) (`@phosphor-icons/react`).
 - Componentes prontos na folha: `.btn`, `.card`, `.input`, `.tag`, `.nav`,
   `.dialog`. O guia completo está em `client/src/styles/nocturne-readme.md`.
@@ -202,8 +208,9 @@ remover apaga a anterior.
 **`sorteios`**: `id`, `numero`, `nome`, `sorteado_em` — guarda o resultado para
 que ele sobreviva a um refresh da página.
 
-Aumentar `total_numeros` no painel cria os novos números como `livre`. Reduzir só
-é permitido se todos os números acima do novo limite estiverem livres.
+Uma rifa vai de 1 a **2000 números** — o teto é validado no servidor e também no
+campo do painel. Aumentar `total_numeros` cria os novos números como `livre`.
+Reduzir só é permitido se todos os números acima do novo limite estiverem livres.
 
 ---
 

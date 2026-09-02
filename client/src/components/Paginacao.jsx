@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -7,6 +8,19 @@ const pad = (n) => String(n).padStart(2, '0');
  * porque "01–60" diz mais do que "1" na hora de procurar um número.
  */
 export default function Paginacao({ pagina, totalPaginas, tamanho, totalNumeros, onIr }) {
+  const trilho = useRef(null);
+
+  // Com muitas páginas o trilho rola; mantém a página atual centralizada nele.
+  // Mexe só no scroll horizontal do trilho, nunca na rolagem da página.
+  useEffect(() => {
+    const caixa = trilho.current;
+    const ativo = caixa?.querySelector('[aria-current="page"]');
+    if (!caixa || !ativo) return;
+    const alvo = ativo.offsetLeft - caixa.clientWidth / 2 + ativo.offsetWidth / 2;
+    const suave = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    caixa.scrollTo({ left: Math.max(0, alvo), behavior: suave ? 'smooth' : 'auto' });
+  }, [pagina]);
+
   if (totalPaginas <= 1) return null;
 
   const paginas = Array.from({ length: totalPaginas }, (_, i) => i);
@@ -23,7 +37,7 @@ export default function Paginacao({ pagina, totalPaginas, tamanho, totalNumeros,
         <CaretLeft size={14} aria-hidden="true" />
       </button>
 
-      <div className="flex flex-1 gap-1 overflow-x-auto">
+      <div ref={trilho} className="flex flex-1 gap-1 overflow-x-auto">
         {paginas.map((p) => {
           const inicio = p * tamanho + 1;
           const fim = Math.min((p + 1) * tamanho, totalNumeros);

@@ -7,6 +7,9 @@ const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+/** Teto de números de uma rifa. */
+const MAX_NUMEROS = 2000;
+
 /** POST /api/admin/login — valida a senha (o próprio middleware faz a checagem). */
 router.post('/login', requireAdmin, (req, res) => {
   res.json({ ok: true });
@@ -29,8 +32,10 @@ router.put('/config', (req, res) => {
   const valor_numero = Number(b.valor_numero ?? atual.valor_numero);
 
   if (!titulo) return res.status(400).json({ erro: 'O título não pode ficar vazio.' });
-  if (!Number.isInteger(total_numeros) || total_numeros < 1 || total_numeros > 100000) {
-    return res.status(400).json({ erro: 'Total de números deve ser um inteiro entre 1 e 100000.' });
+  if (!Number.isInteger(total_numeros) || total_numeros < 1 || total_numeros > MAX_NUMEROS) {
+    return res
+      .status(400)
+      .json({ erro: `Total de números deve ser um inteiro entre 1 e ${MAX_NUMEROS}.` });
   }
   if (!Number.isFinite(valor_numero) || valor_numero < 0) {
     return res.status(400).json({ erro: 'Valor por número inválido.' });

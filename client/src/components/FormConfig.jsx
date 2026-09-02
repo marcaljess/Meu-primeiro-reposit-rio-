@@ -4,7 +4,7 @@ import { CaretDown, CaretUp, Image as ImagemIcone, Trash } from '@phosphor-icons
 const CAMPOS = [
   { nome: 'titulo', rotulo: 'Prêmio / título da rifa', tipo: 'text' },
   { nome: 'chave_pix', rotulo: 'Chave PIX', tipo: 'text' },
-  { nome: 'total_numeros', rotulo: 'Total de números', tipo: 'number', min: 1, step: 1 },
+  { nome: 'total_numeros', rotulo: 'Total de números', tipo: 'number', min: 1, max: 2000, step: 1 },
   { nome: 'valor_numero', rotulo: 'Valor por número (R$)', tipo: 'number', min: 0, step: '0.01' },
   { nome: 'data_sorteio', rotulo: 'Data do sorteio', tipo: 'date' },
 ];
@@ -70,6 +70,7 @@ export default function FormConfig({ config, onSalvar, onEnviarFoto, onRemoverFo
                 className="input"
                 type={campo.tipo}
                 min={campo.min}
+                max={campo.max}
                 step={campo.step}
                 required
                 value={form[campo.nome] ?? ''}
@@ -160,8 +161,8 @@ export default function FormConfig({ config, onSalvar, onEnviarFoto, onRemoverFo
           </div>
 
           <p className="m-0 text-[11px] text-neutral-500">
-            Aumentar o total cria novos números livres. Reduzir só é permitido se os números acima
-            do novo limite estiverem todos livres.
+            Até 2000 números. Aumentar o total cria novos números livres. Reduzir só é permitido se
+            os números acima do novo limite estiverem todos livres.
           </p>
 
           {mensagem && (
